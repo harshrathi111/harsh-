@@ -1,0 +1,63 @@
+import re
+from collections import Counter
+
+# === CONFIGURATION ===
+LOG_FILE_PATH = "example.log"  # Change this to your log file path
+LOG_LEVELS = ["INFO", "WARNING", "ERROR", "DEBUG", "CRITICAL"]
+
+# === FUNCTION TO READ LOG FILE ===
+def read_log_file(path):
+    try:
+        with open(path, "r") as file:
+            return file.readlines()
+    except FileNotFoundError:
+        print("Log file not found.")
+        return []
+
+# === FUNCTION TO PARSE LOG LEVELS ===
+def parse_log_levels(log_lines):
+    level_counts = Counter()
+    for line in log_lines:
+        for level in LOG_LEVELS:
+            if level in line:
+                level_counts[level] += 1
+    return level_counts
+
+# === FUNCTION TO FIND MOST COMMON LOG ENTRIES ===
+def most_common_messages(log_lines, top_n=5):
+    message_counter = Counter()
+    for line in log_lines:
+        clean_line = re.sub(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}', '', line)  # Remove timestamps
+        message_counter[clean_line.strip()] += 1
+    return message_counter.most_common(top_n)
+
+# === FUNCTION TO FILTER LOGS BY KEYWORD ===
+def filter_logs(log_lines, keyword):
+    return [line for line in log_lines if keyword in line]
+
+# === MAIN FUNCTION ===
+def analyse_logs():
+    print("📂 Reading log file...")
+    log_lines = read_log_file(LOG_FILE_PATH)
+
+    if not log_lines:
+        return
+
+    print("\n📊 Log Level Counts:")
+    level_counts = parse_log_levels(log_lines)
+    for level, count in level_counts.items():
+        print(f"{level}: {count}")
+
+    print("\n🔥 Most Common Log Messages:")
+    for msg, count in most_common_messages(log_lines):
+        print(f"{count}x - {msg}")
+
+    print("\n🔍 Filtered Logs (e.g., 'ERROR'):")
+    keyword = "ERROR"
+    filtered = filter_logs(log_lines, keyword)
+    for line in filtered[:5]:
+        print(line.strip())
+
+# === EXECUTE ===
+if __name__ == "__main__":
+    analyse_logs()
